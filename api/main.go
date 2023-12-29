@@ -13,8 +13,8 @@ import (
 
 // list of all available API routes
 func setupRoutes(app *fiber.App) {
-	app.Get("/:url", routes.ResolveURL())
-	app.Post("/api/v1", routes.ShortenURL())
+	app.Get(":/url", routes.ResolveURL)
+	app.Post("/api/v1", routes.ShortenURL)
 }
 
 // APP variable is an instance of the Fiber library
