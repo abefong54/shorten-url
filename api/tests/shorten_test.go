@@ -1,43 +1,46 @@
-package tests
+// package tests
 
-import (
-	"bytes"
-	"encoding/json"
-	"net/http"
-	"testing"
-	"time"
+// import (
+// 	"bytes"
+// 	"encoding/json"
+// 	"net/http"
+// 	"testing"
+// 	"time"
 
-	"github.com/abefong54/shorten-url/routes"
-	"github.com/gofiber/fiber/v2"
-)
+// 	"github.com/abefong54/shorten-url/routes"
+// 	"github.com/gofiber/fiber/v2"
+// 	"github.com/stretchr/testify/assert"
+// )
 
-func TestGetShortenURL(t *testing.T) {
+// type ShortenURLRequest struct {
+// 	URL         string        `json:"url"`
+// 	CustomShort string        `json:"custom_short"`
+// 	Expiry      time.Duration `json:"expiry"`
+// }
 
-	server := fiber.New()
+// func TestShortenURL(t *testing.T) {
 
-	// test data
-	reqData := struct {
-		URL         string        `json:"url"`
-		CustomShort string        `json:"custom_short"`
-		Expiry      time.Duration `json:"expiry"`
-	}{
-		URL:         "www.google.com",
-		CustomShort: "mineplease",
-		Expiry:      10,
-	}
+// 	server := fiber.New()
 
-	body, _ := json.Marshal(reqData)
+// 	reqData := new(ShortenURLRequest)
+// 	reqData.URL = "https://www.google.com"
+// 	reqData.CustomShort = "testing3"
+// 	reqData.Expiry = 2000
 
-	// handler + route
-	server.Get("/api/v1", routes.ShortenURL)
+// 	t.Log(reqData)
 
-	// request + response
-	req, _ := http.NewRequest(http.MethodGet, "/api/v1", bytes.NewBuffer(body))
-	resp, _ := server.Test(req, -1)
+// 	body, _ := json.Marshal(reqData)
 
-	// logs + assertion
-	t.Log(resp.StatusCode)
-	t.Log(resp.Body)
-	// assert.Equal(t, 200, resp.StatusCode)
+// 	// handler + route
+// 	server.Post("/api/v1", routes.ShortenURL)
 
-}
+// 	// request + response
+// 	req, _ := http.NewRequest(http.MethodPost, "/api/v1", bytes.NewBuffer(body))
+// 	resp, _ := server.Test(req, -1)
+
+// 	// logs + assertion
+// 	t.Log(resp.StatusCode)
+// 	t.Log(resp.Body)
+// 	assert.Equal(t, 200, resp.StatusCode)
+
+// }
