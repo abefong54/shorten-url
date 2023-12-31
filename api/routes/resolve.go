@@ -28,6 +28,5 @@ func ResolveURL(c *fiber.Ctx) error {
 
 	_ = rInr.Incr(database.Ctx, "counter") // increment the use count of this url in the db
 
-	// redirect the user to the long form we found
 	return c.Redirect(value, 301)
 }

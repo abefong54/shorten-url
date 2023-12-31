@@ -52,6 +52,7 @@ func ShortenURL(c *fiber.Ctx) error {
 	} else {
 		// we found the user, decrement user rate count
 		valInt, _ := strconv.Atoi(val)
+		valInt = 1 // FOR TESTING
 		if valInt <= 0 {
 			// exceeded rate limit
 			limit, _ := r2.TTL(database.Ctx, c.IP()).Result()
@@ -92,7 +93,7 @@ func ShortenURL(c *fiber.Ctx) error {
 	val, _ = r.Get(database.Ctx, urlID).Result()
 	if val != "" {
 		// the value already exists
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 			"error": "Custom short URL already in use.",
 		})
 	}

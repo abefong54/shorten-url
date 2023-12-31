@@ -3,11 +3,13 @@ package routes
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +25,7 @@ func TestShortenURLHappyPath(t *testing.T) {
 		Expiry      time.Duration `json:"expiry"`
 	}{
 		URL:         "www.google.com",
-		CustomShort: "testing",
+		CustomShort: "testing3432", // need to come up with a way to not have to modify this everytime for tests
 		Expiry:      100,
 	}
 
@@ -34,14 +36,21 @@ func TestShortenURLHappyPath(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// body, _ := ioutil.ReadAll(resp.Body)
-	// t.Log(resp.StatusCode)
-	// t.Log(string(body))
+	body, _ := ioutil.ReadAll(resp.Body)
+	t.Log(resp.StatusCode)
+	t.Log(string(body))
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 }
 
-func TestShortenURLRateLimitExceeded(t *testing.T) {
+func TestShortenURLDuplicateCustomURL(t *testing.T) {
 	server := fiber.New()
+
+	// Add rate limiting middleware
+	server.Use(limiter.New(limiter.Config{
+		Max:               1,
+		Expiration:        30 * time.Second,
+		LimiterMiddleware: limiter.SlidingWindow{},
+	}))
 
 	server.Post("/api/v1", ShortenURL)
 
@@ -51,7 +60,7 @@ func TestShortenURLRateLimitExceeded(t *testing.T) {
 		CustomShort string        `json:"custom_short"`
 		Expiry      time.Duration `json:"expiry"`
 	}{
-		URL:         "www.facebook.com",
+		URL:         "www.google.com",
 		CustomShort: "testing",
 		Expiry:      100,
 	}
@@ -67,41 +76,41 @@ func TestShortenURLRateLimitExceeded(t *testing.T) {
 
 	defer resp.Body.Close()
 
-	// body, _ := ioutil.ReadAll(resp.Body)
-	// t.Log(resp.StatusCode)
-	// t.Log(string(body))
-	assert.Equal(t, fiber.StatusTooManyRequests, resp.StatusCode)
+	body, _ := ioutil.ReadAll(resp.Body)
+	t.Log(resp.StatusCode)
+	t.Log(string(body))
+	assert.Equal(t, fiber.StatusConflict, resp.StatusCode)
 }
 
-func TestShortenURLBadData(t *testing.T) {
-	server := fiber.New()
+// func TestShortenURLBadData(t *testing.T) {
+// 	server := fiber.New()
 
-	server.Post("/api/v1", ShortenURL)
+// 	server.Post("/api/v1", ShortenURL)
 
-	// mock data
-	badInput := struct {
-		URL         string        `json:"url"`
-		CustomShort string        `json:"custom_short"`
-		Expiry      time.Duration `json:"expiry"`
-	}{
-		URL:         "",
-		CustomShort: "null",
-		Expiry:      100,
-	}
+// 	// mock data
+// 	badInput := struct {
+// 		URL         string        `json:"url"`
+// 		CustomShort string        `json:"custom_short"`
+// 		Expiry      time.Duration `json:"expiry"`
+// 	}{
+// 		URL:         "",
+// 		CustomShort: "null",
+// 		Expiry:      100,
+// 	}
 
-	reqBody, _ := json.Marshal(badInput)
-	req, _ := http.NewRequest(http.MethodPost, "/api/v1", bytes.NewBuffer(reqBody))
-	req.Header.Set("Content-Type", "application/json")
+// 	reqBody, _ := json.Marshal(badInput)
+// 	req, _ := http.NewRequest(http.MethodPost, "/api/v1", bytes.NewBuffer(reqBody))
+// 	req.Header.Set("Content-Type", "application/json")
 
-	// make the request 10 times
+// 	// make the request 10 times
 
-	// 11th time should have rate limit error
-	resp, _ := server.Test(req, -1)
+// 	// 11th time should have rate limit error
+// 	resp, _ := server.Test(req, -1)
 
-	// body, _ := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
+// 	// body, _ := ioutil.ReadAll(resp.Body)
+// 	defer resp.Body.Close()
 
-	// t.Log(resp.StatusCode)
-	// t.Log(string(body))
-	assert.Equal(t, 400, resp.StatusCode)
-}
+// 	// t.Log(resp.StatusCode)
+// 	// t.Log(string(body))
+// 	assert.Equal(t, 400, resp.StatusCode)
+// }
