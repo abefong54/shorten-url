@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -14,12 +15,12 @@ import (
 )
 
 // Format structure for request and response
-type request struct {
+type ShortenURLRequest struct {
 	URL         string        `json:"url"`
 	CustomShort string        `json:"custom_short"`
 	Expiry      time.Duration `json:"expiry"`
 }
-type response struct {
+type ShortenURLResponse struct {
 	URL             string        `json:"url`
 	CustomShort     string        `json:"custom_short`
 	Expiry          time.Duration `json:"expiry`
@@ -31,9 +32,9 @@ type response struct {
 // and generates a shorter string version
 func ShortenURL(c *fiber.Ctx) error {
 
-	body := new(request)
-
+	body := new(ShortenURLRequest)
 	if err := c.BodyParser(&body); err != nil {
+		fmt.Println(err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Could not parse JSON"})
 	}
 
@@ -54,7 +55,7 @@ func ShortenURL(c *fiber.Ctx) error {
 		if valInt <= 0 {
 			// exceeded rate limit
 			limit, _ := r2.TTL(database.Ctx, c.IP()).Result()
-			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 				"error":            "Rate limit exceeded",
 				"rate_limit_reset": limit / time.Nanosecond / time.Minute,
 			})
@@ -109,7 +110,7 @@ func ShortenURL(c *fiber.Ctx) error {
 		})
 	}
 
-	resp := response{
+	resp := ShortenURLResponse{
 		URL:             body.URL,
 		CustomShort:     "",
 		Expiry:          body.Expiry,
